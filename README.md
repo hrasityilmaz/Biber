@@ -1,6 +1,5 @@
 **Biber**
 
-Binary Inspection Tool 
+Binary inspection tool — still actively cooking 
 
-Still on active development !! 
-for now using for tests..
+Using it for tests for now, but if you wanna follow along → [auctra.app](https://auctra.app)
