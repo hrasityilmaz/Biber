@@ -29,7 +29,7 @@ pub const PT_INTERP: u32 = 3;
 pub const PT_NOTE: u32 = 4;
 pub const PT_PHDR: u32 = 6;
 
-pub const ElF64Header = extern struct {
+pub const Elf64Header = extern struct {
     e_ident: [16]u8,
     e_type: u16,
     e_machine: u16,
