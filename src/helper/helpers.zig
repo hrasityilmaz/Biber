@@ -10,6 +10,7 @@ pub fn elfTypeName(t: u16) []const u8 {
         ELF.ET_EXEC => "ET_EXEC (executable)",
         ELF.ET_DYN => "ET_DYN (shared object -- dynamic --)",
         ELF.ET_CORE => "ET_CORE (core object)",
+        else => "enknown",
     };
 }
 
