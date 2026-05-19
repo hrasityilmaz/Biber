@@ -75,8 +75,8 @@ pub fn main(init: std.process.Init) !void {
 
     // TODO: MACH-O eklemek lazım
     if (data.len >= 4 and std.mem.eql(u8, data[0..4], &elf.ELFMAG)) {
-        info("content -> {s}", .{data[0..4]});
-        info("linux file", .{});
+        //info("content -> {s}", .{data[0..4]});
+        //info("linux file", .{});
         try elfparser.parseElf(data);
     } else if (data.len >= 2 and std.mem.readInt(u16, data[0..2], .little) == win.DOS_MAGIC) {
         //TODO: winfile support
