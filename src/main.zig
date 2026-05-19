@@ -1,10 +1,10 @@
 const std = @import("std");
 const elf = @import("helper/elf.zig");
 const win = @import("helper/win.zig");
+const elfparser = @import("helper/elfparse.zig");
 
 const e = std.log.err;
 const info = std.log.info;
-const elfparser = @import("helper/elfparse.zig");
 
 pub fn main(init: std.process.Init) !void {
     const gpa = init.gpa;
@@ -16,11 +16,17 @@ pub fn main(init: std.process.Init) !void {
 
     const args = try init.minimal.args.toSlice(gpa);
     //std.debug.print("-- args len {d} --", .{args.len});
-    if (args.len != 4) {
-        std.debug.print("biber v0.1\nbiber [app.exe] [start_point] [end_point]\n", .{});
-        return;
+    //if (args.len != 4) {
+    //    std.debug.print("biber v0.1\nbiber [app.exe] [start_point] [end_point]\n", .{});
+    //    return;
+    //}
+    if (args.len < 2) {
+        std.debug.print(
+            \\biber v0.1
+            \\biber [filename]
+            \\biber [filename] [start_point] [end_point]            
+        , .{});
     }
-
     exe_name = args[1];
     start_point = args[2];
     end_point = args[3];
@@ -30,6 +36,29 @@ pub fn main(init: std.process.Init) !void {
     //const length = try std.fmt.parseInt(usize, end_point, 10);
     const file = try std.Io.Dir.cwd().openFile(io, exe_name, .{ .mode = .read_only });
     defer file.close(io);
+
+    // Diassembler part
+    if (args.len == 4) {
+        const offset = try std.fmt.parseInt(usize, start_point, 10);
+        const length = try std.fmt.parseInt(usize, end_point, 10);
+
+        var read_buffer: [1024]u8 = undefined;
+        var reader = file.reader(io, &read_buffer);
+
+        try reader.seekTo(offset);
+        const bytes = try reader.interface.readAlloc(gpa, @as(usize, length));
+        defer gpa.free(bytes);
+        //std.log.info("{s}", .{bytes});
+        var i: usize = 0;
+        std.debug.print("\n", .{});
+        while (i < bytes.len) : (i += 16) {
+            std.debug.print("{X:0>8}  ", .{offset + i});
+            const row_end = @min(i + 16, bytes.len);
+            for (bytes[i..row_end]) |b| std.debug.print("{X:0>2} ", .{b});
+            std.debug.print("\n", .{});
+        }
+        std.debug.print("\n", .{});
+    }
 
     var read_buffer: [4096]u8 = undefined;
     var reader = file.reader(io, &read_buffer);
@@ -44,6 +73,7 @@ pub fn main(init: std.process.Init) !void {
 
     const data = list.items;
 
+    // TODO: MACH-O eklemek lazım
     if (data.len >= 4 and std.mem.eql(u8, data[0..4], &elf.ELFMAG)) {
         info("content -> {s}", .{data[0..4]});
         info("linux file", .{});
@@ -56,16 +86,4 @@ pub fn main(init: std.process.Init) !void {
         e("[ERROR] Not supported", .{});
         return;
     }
-
-    //try reader.seekTo(offset);
-    //const bytes = try reader.interface.readAlloc(gpa, @as(usize, length));
-    //defer gpa.free(bytes);
-    //std.log.info("{s}", .{bytes});
-    //var i: usize = 0;
-    //while (i < bytes.len) : (i += 16) {
-    //    std.debug.print("{X:0>8}  ", .{offset + i});
-    //    const row_end = @min(i + 16, bytes.len);
-    //    for (bytes[i..row_end]) |b| std.debug.print("{X:0>2} ", .{b});
-    //    std.debug.print("\n", .{});
-    //}
 }
