@@ -49,7 +49,7 @@ pub fn elfParser(comptime header: type, comptime programHeader: type, comptime s
 
     for (0..hdr.e_phnum) |index| {
         //print("{d} {X}\n", .{ index, @as(usize, hdr.e_phoff) + @as(usize, index) * hdr.e_phentsize });
-        const p_off = @as(usize, hdr.*.e_phoff) + @as(usize, index) * hdr.e_phentsize;
+        const p_off = @as(usize, hdr.*.e_phoff) + @as(usize, index) * hdr.*.e_phentsize;
         if (p_off + @sizeOf(programHeader) > data.len) break;
         //print("{X}\n", .{off});
         const ph = std.mem.bytesAsValue(programHeader, data[p_off..][0..@sizeOf(programHeader)]);
@@ -71,13 +71,19 @@ pub fn elfParser(comptime header: type, comptime programHeader: type, comptime s
     });
     print("  {s}\n", .{"-" ** 94});
 
+    //Shrtab
+    const str_index = @as(usize, hdr.e_shstrndx);
+    const str_off = @as(usize, hdr.*.e_shoff) + str_index * @as(usize, hdr.*.e_shentsize);
+    const str_sh = std.mem.bytesAsValue(sectionHeader, data[str_off..][0..@sizeOf(sectionHeader)]);
+    const shstrtab = data[@as(usize, str_sh.sh_offset)..][0..@as(usize, str_sh.sh_size)];
+
     for (0..hdr.e_shnum) |index| {
         //print("{d} {X}\n", .{ index, @as(usize, hdr.e_phoff) + @as(usize, index) * hdr.e_shentsize });
-        const s_off = @as(usize, hdr.e_shoff) + @as(usize, index) * hdr.e_shentsize;
+        const s_off = @as(usize, hdr.*.e_shoff) + @as(usize, index) * hdr.*.e_shentsize;
         if (s_off + @sizeOf(sectionHeader) > data.len) break;
         const sh = std.mem.bytesAsValue(sectionHeader, data[s_off..][0..@sizeOf(sectionHeader)]);
-
-        const name = "---";
+        //print("{any}", .{shstrtab});
+        const name = std.mem.sliceTo(shstrtab[@as(usize, sh.sh_name)..], 0);
         print(
             "  {d:<4} {s:<20} {s:<12} 0x{X:0>16}  0x{X:0>8}  0x{X:0>8}   {d:<8}\n",
             .{
