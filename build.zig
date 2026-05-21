@@ -12,7 +12,26 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+
+    const sizeof_exe = b.addExecutable(.{
+        .name = "sizeof",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("tools/sizeof.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const elf_mod = b.createModule(.{
+        .root_source_file = b.path("src/helper/elf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    sizeof_exe.root_module.addImport("elf", elf_mod);
+
     b.installArtifact(exe);
+    b.installArtifact(sizeof_exe);
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
