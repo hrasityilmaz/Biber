@@ -28,6 +28,17 @@ pub const PT_DYNAMIC: u32 = 2;
 pub const PT_INTERP: u32 = 3;
 pub const PT_NOTE: u32 = 4;
 pub const PT_PHDR: u32 = 6;
+pub const PT_TLS: u32 = 7;
+//Later Added -- unknown issue
+pub const PT_GNU_EH_FRAME: u32 = 0x6474e550;
+pub const PT_GNU_STACK: u32 = 0x6474e551;
+pub const PT_GNU_RELRO: u32 = 0x6474e552;
+pub const PT_GNU_PROPERTY: u32 = 0x6474e553;
+pub const PT_GNU_SFRAME: u32 = 0x6474e554;
+pub const PT_LOSUW: u32 = 0x6ffffffa;
+pub const PT_SUNWBSS: u32 = 0x6ffffffa;
+pub const PT_SUNWSSTACK: u32 = 0x6ffffffb;
+pub const PT_HISUNW: u32 = 0x6fffffff;
 
 pub const Elf64Header = extern struct {
     e_ident: [16]u8,
