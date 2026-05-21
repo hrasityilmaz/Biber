@@ -64,9 +64,8 @@ pub fn elfParser(comptime header: type, comptime programHeader: type, comptime s
             ph.p_memsz,
         });
     }
-    print("\n", .{});
 
-    print("SECTION HEADER", .{});
+    print("\nSECTION HEADER", .{});
     print("\n\n  {s:<4} {s:<20} {s:<12} {s:<18} {s:<12} {s:<12} {s:<8}\n", .{
         "Nr", "Name", "Type", "Address", "Offset", "Size", "Align",
     });
