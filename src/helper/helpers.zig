@@ -10,7 +10,7 @@ pub fn elfTypeName(t: u16) []const u8 {
         ELF.ET_EXEC => "ET_EXEC (executable)",
         ELF.ET_DYN => "ET_DYN (shared object -- dynamic --)",
         ELF.ET_CORE => "ET_CORE (core object)",
-        else => "enknown",
+        else => "unknown",
     };
 }
 
@@ -33,7 +33,7 @@ pub fn sectionType(t: u32) []const u8 {
         ELF.SHT_RELA => "RELA",
         ELF.SHT_NOBITS => "NOBITS",
         ELF.SHT_REL => "REL",
-        else => "OTHER",
+        else => "unknown",
     };
 }
 
@@ -45,7 +45,14 @@ pub fn segmentTypeName(t: u32) []const u8 {
         ELF.PT_INTERP => "INTERP",
         ELF.PT_NOTE => "NOTE",
         ELF.PT_PHDR => "PHDR",
-        else => "OTHER",
+        ELF.PT_GNU_EH_FRAME => "GNU_EH_FRAME",
+        ELF.PT_GNU_STACK => "GNU_STACK",
+        ELF.PT_GNU_RELRO => "GNU_RELRO",
+        ELF.PT_GNU_PROPERTY => "GNU_PROPERTY",
+        ELF.PT_GNU_SFRAME => "GNU_SFRAME",
+        ELF.PT_TLS => "TLS",
+        ELF.PT_LOSUW => "LOSUW",
+        else => "unknown",
     };
 }
 
