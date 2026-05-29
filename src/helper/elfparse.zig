@@ -354,8 +354,6 @@ fn printDynamic(
     }
 }
 
-// elfparse.zig — dosyanın sonuna ekle
-
 fn printSysVHash(
     comptime header: type,
     comptime sectionHeader: type,

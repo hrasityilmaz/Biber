@@ -143,10 +143,14 @@ pub fn main(init: std.process.Init) !void {
 
     if (opt.dis) {
         std.debug.print("DISASSEMBLER VIEW\n", .{});
+        // TODO: decode opcode
+        // 0x1000  55             push rbp
+        // 0x1001  48 89 E5       mov rbp, rsp
+        // 0x1004  E8 12 00 00 00 call 0x101B
         helper.hexDump(data, opt.offset, opt.length);
         return;
     }
-
+    // mach-o suppoer maybe later..
     switch (helper.detectFormat(data)) {
         .elf => try helper.runElf(data, opt),
         .pe => try helper.runPe(data, opt),
