@@ -1,10 +1,11 @@
 const std = @import("std");
 const win = @import("win.zig");
 const winhelper = @import("winhelper.zig");
+const options = @import("mainhelper.zig").Options;
 
 const print = std.debug.print;
 
-pub fn parsePe(data: []const u8) !void {
+pub fn parsePe(data: []const u8, option: options) !void {
     if (data.len < @sizeOf(win.DosHeader)) {
         print("[ERROR] Too small for DOS Header", .{});
         return;
@@ -135,26 +136,81 @@ pub fn parsePe(data: []const u8) !void {
 
     const secs = sections[0..sc];
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT].virtual_address != 0)
-        try printExports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT]);
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT].virtual_address != 0)
+    //    try printExports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT]);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT].virtual_address != 0)
+    //    try printImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT], is64);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG].virtual_address != 0)
+    //    printDebugDir(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG]);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_TLS].virtual_address != 0)
+    //    printTls(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_TLS], is64, image_base);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC].virtual_address != 0)
+    //    printBaseReloc(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC], false);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE].virtual_address != 0)
+    //    printResources(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE]);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].virtual_address != 0)
+    //    printDelayImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT], is64);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_EXCEPTION].virtual_address != 0)
+    //    printException(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_EXCEPTION]);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].virtual_address != 0)
+    //    printLoadConfig(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG], is64);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].virtual_address != 0)
+    //    printBoundImport(data, dirs[win.IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]);
+    //
+    //if (dirs[win.IMAGE_DIRECTORY_ENTRY_SECURITY].virtual_address != 0)
+    //    printSecurity(data, dirs[win.IMAGE_DIRECTORY_ENTRY_SECURITY]);
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT].virtual_address != 0)
-        try printImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT], is64);
+    if (option.all or option.pe_exports) {
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT].virtual_address != 0)
+            try printExports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_EXPORT]);
+    }
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG].virtual_address != 0)
-        printDebugDir(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG]);
+    if (option.all or option.pe_imports) {
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT].virtual_address != 0)
+            try printImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_IMPORT], is64);
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_TLS].virtual_address != 0)
-        printTls(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_TLS], is64, image_base);
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].virtual_address != 0)
+            printDelayImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT], is64);
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC].virtual_address != 0)
-        printBaseReloc(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC], false);
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].virtual_address != 0)
+            printBoundImport(data, dirs[win.IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]);
+    }
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE].virtual_address != 0)
-        printResources(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE]);
+    if (option.all or option.pe_debug) {
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG].virtual_address != 0)
+            printDebugDir(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DEBUG]);
 
-    if (dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].virtual_address != 0)
-        printDelayImports(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT], is64);
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_SECURITY].virtual_address != 0)
+            printSecurity(data, dirs[win.IMAGE_DIRECTORY_ENTRY_SECURITY]);
+    }
+
+    if (option.all or option.pe_exceptions) {
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_EXCEPTION].virtual_address != 0)
+            printException(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_EXCEPTION]);
+    }
+
+    if (option.all or option.pe_directories) {
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_TLS].virtual_address != 0)
+            printTls(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_TLS], is64, image_base);
+
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC].virtual_address != 0)
+            printBaseReloc(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_BASERELOC], false);
+
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE].virtual_address != 0)
+            printResources(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_RESOURCE]);
+
+        if (dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].virtual_address != 0)
+            printLoadConfig(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG], is64);
+    }
 }
 
 fn printExports(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory) !void {
@@ -199,6 +255,7 @@ fn printExports(data: []const u8, sections: []const win.PeSectionHeader, dir: wi
 
         print("  {d:<6} 0x{X:0>8} {s}\n", .{ @as(u32, ordinal) + exp.base, func_rva, sym_name });
     }
+    print("\n", .{});
 }
 
 fn printImports(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory, is64: bool) !void {
@@ -273,6 +330,7 @@ fn printImports(data: []const u8, sections: []const win.PeSectionHeader, dir: wi
 
         desc_off += desc_size;
     }
+    print("\n", .{});
 }
 
 fn printDelayImports(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory, is64: bool) void {
@@ -344,6 +402,7 @@ fn printDelayImports(data: []const u8, sections: []const win.PeSectionHeader, di
         }
         off += desc_size;
     }
+    print("\n", .{});
 }
 
 fn printDebugDir(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory) void {
@@ -407,6 +466,7 @@ fn printDebugDir(data: []const u8, sections: []const win.PeSectionHeader, dir: w
             print("\n", .{});
         }
     }
+    print("\n", .{});
 }
 
 fn printTls(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory, is64: bool, image_base: u64) void {
@@ -476,6 +536,7 @@ fn printTls(data: []const u8, sections: []const win.PeSectionHeader, dir: win.Im
             if (idx == 0) print("    (none)\n", .{});
         }
     }
+    print("\n", .{});
 }
 
 fn printBaseReloc(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory, verbose: bool) void {
@@ -522,7 +583,7 @@ fn printBaseReloc(data: []const u8, sections: []const win.PeSectionHeader, dir: 
         }
         off += @as(usize, blk.size_of_block);
     }
-    print("\n  Total: {d} blocks, {d} entries\n", .{ total_blocks, total_entries });
+    print("\n  Total: {d} blocks, {d} entries\n\n", .{ total_blocks, total_entries });
 }
 
 fn printResourceDir(
@@ -605,10 +666,10 @@ fn printResourceDir(
             printResourceDir(data, rsrc_base, offset, rsrc_va, depth + 1);
         }
     }
+    print("\n", .{});
 }
 
 fn printResources(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory) void {
-    // .rsrc section'ı bul
     var rsrc_va: u32 = 0;
     var rsrc_raw: u32 = 0;
 
@@ -629,4 +690,179 @@ fn printResources(data: []const u8, sections: []const win.PeSectionHeader, dir: 
 
     print("\nRESOURCE TABLE\n\n", .{});
     printResourceDir(data, rsrc_base, dir_off, rsrc_va, 0);
+    print("\n", .{});
+}
+
+fn printException(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory) void {
+    const off: usize = @as(usize, winhelper.rvaToOffset(dir.virtual_address, sections) orelse return);
+    const entry_size = @sizeOf(win.ImageRuntimeFunctionEntry);
+    const count = @as(usize, dir.size) / entry_size;
+
+    print("\nEXCEPTION DIRECTORY (.pdata)\n", .{});
+    print("  Function count: {d}\n\n", .{count});
+    print("  {s:<12} {s:<12} {s:<12} {s}\n", .{ "Begin RVA", "End RVA", "Unwind RVA", "Flags" });
+    print("  {s}\n", .{"-" ** 60});
+
+    for (0..count) |i| {
+        const eoff = off + i * entry_size;
+        if (eoff + entry_size > data.len) break;
+        const rf = std.mem.bytesAsValue(win.ImageRuntimeFunctionEntry, data[eoff..][0..entry_size]);
+        const unwind_off_raw = winhelper.rvaToOffset(rf.unwind_info_address, sections);
+        var flags_str: []const u8 = "";
+        if (unwind_off_raw) |uoff| {
+            if (uoff < data.len) {
+                const ubyte = data[uoff];
+                const flags: u8 = (ubyte >> 3) & 0x1F;
+                flags_str = if (flags & win.UNW_FLAG_CHAININFO != 0) "CHAIN" else if (flags & win.UNW_FLAG_EHANDLER != 0 and flags & win.UNW_FLAG_UHANDLER != 0) "EH+UH" else if (flags & win.UNW_FLAG_EHANDLER != 0) "EH" else if (flags & win.UNW_FLAG_UHANDLER != 0) "UH" else "";
+            }
+        }
+
+        print("  0x{X:0>8}   0x{X:0>8}   0x{X:0>8}   {s}\n", .{
+            rf.begin_address, rf.end_address, rf.unwind_info_address, flags_str,
+        });
+    }
+    print("\n", .{});
+}
+
+fn printLoadConfig(data: []const u8, sections: []const win.PeSectionHeader, dir: win.ImageDataDirectory, is64: bool) void {
+    const off: usize = @as(usize, winhelper.rvaToOffset(dir.virtual_address, sections) orelse return);
+
+    print("\nLOAD CONFIG DIRECTORY\n", .{});
+
+    if (is64) {
+        if (off + @sizeOf(win.ImageLoadConfigDirectory64) > data.len) return;
+        const lc = std.mem.bytesAsValue(win.ImageLoadConfigDirectory64, data[off..][0..@sizeOf(win.ImageLoadConfigDirectory64)]);
+
+        print("  Size                : 0x{X}\n", .{lc.size});
+        print("  Security Cookie     : 0x{X:0>16}\n", .{lc.security_cookie});
+        print("  SEH Handler Table   : 0x{X:0>16}\n", .{lc.se_handler_table});
+        print("  SEH Handler Count   : {d}\n", .{lc.se_handler_count});
+        print("  CF Check Ptr        : 0x{X:0>16}\n", .{lc.guard_cf_check_function_pointer});
+        print("  CF Dispatch Ptr     : 0x{X:0>16}\n", .{lc.guard_cf_dispatch_function_pointer});
+        print("  CF Function Table   : 0x{X:0>16}\n", .{lc.guard_cf_function_table});
+        print("  CF Function Count   : {d}\n", .{lc.guard_cf_function_count});
+        print("  Guard Flags         : 0x{X:0>8}\n", .{lc.guard_flags});
+
+        const gf = lc.guard_flags;
+        if (gf & win.IMAGE_GUARD_CF_INSTRUMENTED != 0)
+            print("    [+] CF_INSTRUMENTED\n", .{});
+        if (gf & win.IMAGE_GUARD_CFW_INSTRUMENTED != 0)
+            print("    [+] CFW_INSTRUMENTED (write)\n", .{});
+        if (gf & win.IMAGE_GUARD_CF_FUNCTION_TABLE_PRESENT != 0)
+            print("    [+] CF_FUNCTION_TABLE_PRESENT\n", .{});
+        if (gf & win.IMAGE_GUARD_SECURITY_COOKIE_UNUSED != 0)
+            print("    [+] SECURITY_COOKIE_UNUSED\n", .{});
+        if (gf & win.IMAGE_GUARD_CF_EXPORT_SUPPRESSION_INFO_PRESENT != 0)
+            print("    [+] EXPORT_SUPPRESSION\n", .{});
+        if (gf & win.IMAGE_GUARD_CF_LONGJUMP_TABLE_PRESENT != 0)
+            print("    [+] LONGJUMP_TABLE\n", .{});
+
+        if (lc.guard_cf_function_table != 0 and lc.guard_cf_function_count > 0) {
+            const image_base: u64 = lc.guard_cf_function_table; // VA
+            _ = image_base;
+            print("\n  CF Function Table   : {d} entries (use --verbose to dump)\n", .{lc.guard_cf_function_count});
+        }
+    } else {
+        if (off + @sizeOf(win.ImageLoadConfigDirectory32) > data.len) return;
+        const lc = std.mem.bytesAsValue(win.ImageLoadConfigDirectory32, data[off..][0..@sizeOf(win.ImageLoadConfigDirectory32)]);
+
+        print("  Size                : 0x{X}\n", .{lc.size});
+        print("  Security Cookie     : 0x{X:0>8}\n", .{lc.security_cookie});
+        print("  SEH Handler Table   : 0x{X:0>8}\n", .{lc.se_handler_table});
+        print("  SEH Handler Count   : {d}\n", .{lc.se_handler_count});
+        print("  CF Check Ptr        : 0x{X:0>8}\n", .{lc.guard_cf_check_function_pointer});
+        print("  CF Function Table   : 0x{X:0>8}\n", .{lc.guard_cf_function_table});
+        print("  CF Function Count   : {d}\n", .{lc.guard_cf_function_count});
+        print("  Guard Flags         : 0x{X:0>8}\n", .{lc.guard_flags});
+
+        const gf = lc.guard_flags;
+        if (gf & win.IMAGE_GUARD_CF_INSTRUMENTED != 0)
+            print("    [+] CF_INSTRUMENTED\n", .{});
+        if (gf & win.IMAGE_GUARD_CF_FUNCTION_TABLE_PRESENT != 0)
+            print("    [+] CF_FUNCTION_TABLE_PRESENT\n", .{});
+        if (gf & win.IMAGE_GUARD_SECURITY_COOKIE_UNUSED != 0)
+            print("    [+] SECURITY_COOKIE_UNUSED\n", .{});
+    }
+
+    print("\n", .{});
+}
+
+fn printBoundImport(data: []const u8, dir: win.ImageDataDirectory) void {
+    const base: usize = @as(usize, dir.virtual_address);
+    if (base + @sizeOf(win.ImageBoundImportDescriptor) > data.len) return;
+
+    print("\nBOUND IMPORT TABLE\n", .{});
+    print("  {s:<12} {s:<8} {s}\n", .{ "Timestamp", "Fwds", "Name" });
+    print("  {s}\n", .{"-" ** 50});
+
+    var off: usize = base;
+    while (off + @sizeOf(win.ImageBoundImportDescriptor) <= data.len) {
+        const desc = std.mem.bytesAsValue(win.ImageBoundImportDescriptor, data[off..][0..@sizeOf(win.ImageBoundImportDescriptor)]);
+        if (desc.time_date_stamp == 0 and desc.offset_module_name == 0) break;
+
+        const name_off = base + @as(usize, desc.offset_module_name);
+        const name = if (name_off < data.len)
+            std.mem.sliceTo(data[name_off..], 0)
+        else
+            "<unknown>";
+
+        print("  0x{X:0>8}   {d:<6}  {s}\n", .{
+            desc.time_date_stamp,
+            desc.number_of_module_forwarder_refs,
+            name,
+        });
+        off += @sizeOf(win.ImageBoundImportDescriptor);
+    }
+    print("\n", .{});
+}
+
+fn printSecurity(data: []const u8, dir: win.ImageDataDirectory) void {
+    const off: usize = @as(usize, dir.virtual_address);
+    if (off + @sizeOf(win.ImageDataDirectorySecurity) > data.len) return;
+
+    print("\nSECURITY DIRECTORY (Authenticode)\n", .{});
+
+    var cur: usize = off;
+    const end: usize = off + @as(usize, dir.size);
+    var cert_idx: u32 = 0;
+
+    while (cur + @sizeOf(win.ImageDataDirectorySecurity) <= end and cur < data.len) {
+        const cert = std.mem.bytesAsValue(win.ImageDataDirectorySecurity, data[cur..][0..@sizeOf(win.ImageDataDirectorySecurity)]);
+
+        const rev_str: []const u8 = switch (cert.revision) {
+            win.WIN_CERT_REVISION_1_0 => "1.0",
+            win.WIN_CERT_REVISION_2_0 => "2.0",
+            else => "?",
+        };
+        const type_str: []const u8 = switch (cert.certificate_type) {
+            win.WIN_CERT_TYPE_X509 => "X.509",
+            win.WIN_CERT_TYPE_PKCS_SIGNED_DATA => "PKCS#7 SignedData",
+            win.WIN_CERT_TYPE_TS_STACK_SIGNED => "TS Stack Signed",
+            else => "Unknown",
+        };
+
+        print("\n  [{d}] Revision: {s}  Type: {s}  Length: {d} bytes\n", .{
+            cert_idx, rev_str, type_str, cert.length,
+        });
+
+        if (cert.certificate_type == win.WIN_CERT_TYPE_PKCS_SIGNED_DATA) {
+            // PKCS#7 data — ilk birkaç byte'ı göster (ASN.1 SEQUENCE tag)
+            const data_start = cur + @sizeOf(win.ImageDataDirectorySecurity);
+            const data_end = cur + @as(usize, cert.length);
+            if (data_start + 4 <= data.len and data_start < data_end) {
+                print("      ASN.1 header: ", .{});
+                const show = @min(data_start + 16, @min(data_end, data.len));
+                for (data[data_start..show]) |b| print("{X:0>2} ", .{b});
+                print("...\n", .{});
+                print("      (PKCS#7 blob — {d} bytes total)\n", .{cert.length - @sizeOf(win.ImageDataDirectorySecurity)});
+            }
+        }
+
+        // 8-byte align
+        const aligned = (cert.length + 7) & ~@as(u32, 7);
+        if (aligned == 0) break;
+        cur += @as(usize, aligned);
+        cert_idx += 1;
+    }
+    print("\n", .{});
 }
