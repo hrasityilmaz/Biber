@@ -20,6 +20,7 @@ pub const SHT_PROGBITS: u32 = 1;
 pub const SHT_SYMTAB: u32 = 2;
 pub const SHT_STRTAB: u32 = 3;
 pub const SHT_RELA: u32 = 4;
+pub const SHT_NOTE: u32 = 7;
 pub const SHT_NOBITS: u32 = 8;
 pub const SHT_REL: u32 = 9;
 pub const PT_NULL: u32 = 0;
@@ -120,4 +121,22 @@ pub const Elf32ProgramHeader = extern struct {
     p_memsz: u32,
     p_flags: u32,
     p_align: u32,
+};
+
+pub const Elf32Sym = extern struct {
+    st_name: u32,
+    st_value: u32,
+    st_size: u32,
+    st_info: u8,
+    st_other: u8,
+    st_shndx: u16,
+};
+
+pub const Elf64Sym = extern struct {
+    st_name: u32,
+    st_info: u8,
+    st_other: u8,
+    st_shndx: u16,
+    st_value: u64,
+    st_size: u64,
 };
