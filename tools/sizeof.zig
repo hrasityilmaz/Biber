@@ -1,18 +1,35 @@
 const std = @import("std");
-const structs = @import("elf");
+const linstructs = @import("elf");
+const winstructs = @import("win");
 
 const print = std.debug.print;
 
+fn printStructLayout(comptime T: type) void {
+    print("\n{s}\n", .{@typeName(T)});
+    print("SIZE  : {d} bytes\n", .{@sizeOf(T)});
+    print("ALIGN : {d}\n", .{@alignOf(T)});
+    print("-----------------------------\n", .{});
+
+    inline for (@typeInfo(T).@"struct".fields) |field| {
+        std.debug.print("{s:<16} offset=0x{X:<4} size={d}\n", .{
+            field.name,
+            @offsetOf(T, field.name),
+            @sizeOf(field.type),
+        });
+    }
+}
 pub fn main() void {
-    print(
-        \\Size of ELF32Header {d}
-        \\Size of ELF64Header {d}
-        \\Size of Elf32 Program Header {d} 
-        \\Size of Elf32SectionHeader {d}
-    , .{
-        @sizeOf(structs.Elf32Header),
-        @sizeOf(structs.Elf64Header),
-        @sizeOf(structs.Elf32ProgramHeader),
-        @sizeOf(structs.Elf32SectionHeader),
-    });
+    // LIN
+    printStructLayout(linstructs.Elf32Header);
+    printStructLayout(linstructs.Elf64Header);
+    printStructLayout(linstructs.Elf32ProgramHeader);
+    printStructLayout(linstructs.Elf32SectionHeader);
+    printStructLayout(linstructs.Elf64ProgramHeader);
+    printStructLayout(linstructs.Elf64SectionHeader);
+    // WIN
+    printStructLayout(winstructs.DosHeader);
+    printStructLayout(winstructs.PeFileHeader);
+    printStructLayout(winstructs.PeOptionalHeader32);
+    printStructLayout(winstructs.PeOptionalHeader64);
+    printStructLayout(winstructs.PeSectionHeader);
 }
