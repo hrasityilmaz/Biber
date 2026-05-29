@@ -13,6 +13,12 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    if (target.result.os.tag == .windows) {
+        exe.root_module.addWin32ResourceFile(.{
+            .file = b.path("app.rc"),
+        });
+    }
+
     const sizeof_exe = b.addExecutable(.{
         .name = "sizeof",
         .root_module = b.createModule(.{
@@ -29,6 +35,14 @@ pub fn build(b: *std.Build) void {
     });
 
     sizeof_exe.root_module.addImport("elf", elf_mod);
+
+    const win_mod = b.createModule(.{
+        .root_source_file = b.path("src/helper/win.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    sizeof_exe.root_module.addImport("win", win_mod);
 
     b.installArtifact(exe);
     b.installArtifact(sizeof_exe);
