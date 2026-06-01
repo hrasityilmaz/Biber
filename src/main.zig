@@ -77,6 +77,7 @@ pub fn main(init: std.process.Init) !void {
 
     const args = try init.minimal.args.toSlice(gpa);
     defer gpa.free(args); // !!! dont forget ...
+
     //std.debug.print("-- args len {d} --", .{args.len});
     //if (args.len != 4) {
     //    std.debug.print("biber v0.1\nbiber [app.exe] [start_point] [end_point]\n", .{});
@@ -107,10 +108,10 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
-    // Sadece `biber -f file.exe` yazılırsa default olarak header bas.
     if (hasNoAction(opt)) {
         opt.headers = true;
     }
+
     //exe_name = args[1];
     //start_point = args[2];
     //end_point = args[3];
