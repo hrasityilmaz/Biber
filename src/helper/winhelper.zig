@@ -33,7 +33,7 @@ pub fn sectionFlags(ch: u32) [4]u8 {
 }
 
 pub fn rvaToOffset(rva: u32, sections: []const win.PeSectionHeader) ?u32 {
-    // RVA - VirtAddr + RawOffset
+    // RVA - VirtAddr + RawOffset here some mixin part but working..
     for (sections) |s| {
         if (rva >= s.virtual_address and rva < s.virtual_address + s.virtual_size) {
             return s.pointer_to_raw_data + (rva - s.virtual_address);

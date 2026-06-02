@@ -382,7 +382,6 @@ fn printSysVHash(
         print("  nbucket : {d}\n", .{nbucket});
         print("  nchain  : {d}  (== symbol count)\n\n", .{nchain});
 
-        // bucket[]
         print("  Buckets:\n  ", .{});
         for (0..nbucket) |b| {
             const boff = 8 + b * 4;
@@ -392,7 +391,6 @@ fn printSysVHash(
         }
         print("\n", .{});
 
-        // chain[]
         print("\n  Chains:\n  ", .{});
         for (0..nchain) |c| {
             const coff = 8 + nbucket * 4 + c * 4;
@@ -439,7 +437,6 @@ fn printGnuHash(
         print("  bloom_size : {d}  (bloom filter words)\n", .{bloom_size});
         print("  bloom_shift: {d}\n\n", .{bloom_shift});
 
-        // Bloom filter
         const bloom_start: usize = 16;
         const bloom_bytes = bloom_size * bloom_word_size;
         print("  Bloom filter ({d}-bit words):\n  ", .{bloom_word_size * 8});
@@ -455,8 +452,6 @@ fn printGnuHash(
             }
         }
         print("\n", .{});
-
-        // Buckets
         const bucket_start = bloom_start + bloom_bytes;
         print("\n  Buckets ({d}):\n  ", .{nbuckets});
         for (0..nbuckets) |b| {
@@ -467,7 +462,6 @@ fn printGnuHash(
         }
         print("\n", .{});
 
-        // Chain
         const chain_start = bucket_start + nbuckets * 4;
         const chain_bytes = if (chain_start < hash_data.len) hash_data.len - chain_start else 0;
         const chain_count = chain_bytes / 4;

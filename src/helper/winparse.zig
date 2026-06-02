@@ -48,7 +48,7 @@ pub fn parsePe(data: []const u8, option: options) !void {
 
     var entry_point: u32 = 0;
     var image_base: u64 = 0;
-    var data_dirs_rva: usize = 0; // opt_off'tan data dir'lara offset
+    var data_dirs_rva: usize = 0;
     var num_dirs: u32 = 0;
 
     if (is64) {
@@ -210,6 +210,7 @@ pub fn parsePe(data: []const u8, option: options) !void {
 
         if (dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].virtual_address != 0)
             printLoadConfig(data, secs, dirs[win.IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG], is64);
+        //try printStrings(data, secs, 8);
     }
 }
 
@@ -280,8 +281,6 @@ fn printImports(data: []const u8, sections: []const win.PeSectionHeader, dir: wi
         print("\n  {s}\n", .{dll_name});
         print("  {s:<6} {s}\n", .{ "Hint", "Name" });
         print("  {s}\n", .{"-" ** 40});
-
-        // INT (OriginalFirstThunk) yoksa IAT'ı kullan
         const thunk_rva = if (desc.original_first_thunk != 0)
             desc.original_first_thunk
         else
@@ -304,11 +303,9 @@ fn printImports(data: []const u8, sections: []const win.PeSectionHeader, dir: wi
             if (thunk_val == 0) break;
 
             if (thunk_val & ordinal_flag != 0) {
-                // Ordinal ile import
                 const ord = @as(u16, @truncate(thunk_val & 0xFFFF));
                 print("  {d:<6} <ordinal>\n", .{ord});
             } else {
-                // İsimle import — hint/name entry
                 const hint_rva = @as(u32, @truncate(thunk_val & 0x7FFFFFFF));
                 const hint_off: usize = @as(usize, winhelper.rvaToOffset(hint_rva, sections) orelse {
                     thunk_off += thunk_size;
@@ -758,7 +755,7 @@ fn printLoadConfig(data: []const u8, sections: []const win.PeSectionHeader, dir:
             print("    [+] LONGJUMP_TABLE\n", .{});
 
         if (lc.guard_cf_function_table != 0 and lc.guard_cf_function_count > 0) {
-            const image_base: u64 = lc.guard_cf_function_table; // VA
+            const image_base: u64 = lc.guard_cf_function_table;
             _ = image_base;
             print("\n  CF Function Table   : {d} entries (use --verbose to dump)\n", .{lc.guard_cf_function_count});
         }
@@ -846,7 +843,6 @@ fn printSecurity(data: []const u8, dir: win.ImageDataDirectory) void {
         });
 
         if (cert.certificate_type == win.WIN_CERT_TYPE_PKCS_SIGNED_DATA) {
-            // PKCS#7 data — ilk birkaç byte'ı göster (ASN.1 SEQUENCE tag)
             const data_start = cur + @sizeOf(win.ImageDataDirectorySecurity);
             const data_end = cur + @as(usize, cert.length);
             if (data_start + 4 <= data.len and data_start < data_end) {
@@ -859,6 +855,7 @@ fn printSecurity(data: []const u8, dir: win.ImageDataDirectory) void {
         }
 
         // 8-byte align
+        // std.mem.alignForward !!
         const aligned = (cert.length + 7) & ~@as(u32, 7);
         if (aligned == 0) break;
         cur += @as(usize, aligned);
@@ -866,3 +863,45 @@ fn printSecurity(data: []const u8, dir: win.ImageDataDirectory) void {
     }
     print("\n", .{});
 }
+
+//fn printStrings(data: []const u8, sections: []const win.PeSectionHeader, min_len: usize) !void {
+//    print("\nSTRINGS\n", .{});
+//    print("  {s:<12} {s:<8} {s}\n", .{ "Offset", "Section", "String" });
+//    print("  {s}\n", .{"-" ** 60});
+//
+//    for (sections) |sec| {
+//        const sec_start = sec.pointer_to_raw_data;
+//        const sec_end = sec_start + sec.size_of_raw_data;
+//        if (sec_end > data.len) continue;
+//        const sec_data = data[sec_start..sec_end];
+//        const sec_name = std.mem.sliceTo(&sec.name, 0);
+//
+//        var start: ?usize = null;
+//        var i: usize = 0;
+//        while (i < sec_data.len) : (i += 1) {
+//            const byte = sec_data[i];
+//            const printable = byte >= 0x20 and byte < 0x7F;
+//            if (printable) {
+//                if (start == null) start = i;
+//            } else {
+//                if (start) |s| {
+//                    const str = sec_data[s..i];
+//                    if (str.len >= min_len) {
+//                        const file_off = sec_start + s;
+//                        const rva = sec.virtual_address + s;
+//                        _ = rva;
+//                        print("  0x{X:0>8}  {s:<8} {s}\n", .{ file_off, sec_name, str });
+//                    }
+//                    start = null;
+//                }
+//            }
+//        }
+//        if (start) |s| {
+//            const str = sec_data[s..];
+//            if (str.len >= min_len) {
+//                print("  0x{X:0>8}  {s:<8} {s}\n", .{ sec_start + s, sec_name, str });
+//            }
+//        }
+//    }
+//    print("\n", .{});
+//}

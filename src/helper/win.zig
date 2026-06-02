@@ -211,13 +211,13 @@ pub const ImageRuntimeFunctionEntry = extern struct {
     unwind_info_address: u32,
 };
 
-// Unwind info header (ilk byte)
+// Unwind info header
 pub const UNW_FLAG_NHANDLER: u8 = 0x0;
 pub const UNW_FLAG_EHANDLER: u8 = 0x1;
 pub const UNW_FLAG_UHANDLER: u8 = 0x2;
 pub const UNW_FLAG_CHAININFO: u8 = 0x4;
 
-// Load Config (64-bit) — sadece kullandığımız alanlar
+// Load Config (64-bit)
 pub const ImageLoadConfigDirectory64 = extern struct {
     size: u32,
     time_date_stamp: u32,
@@ -283,19 +283,16 @@ pub const ImageLoadConfigDirectory32 = extern struct {
     guard_flags: u32,
 };
 
-// IAT / Bound Import
 pub const ImageBoundImportDescriptor = extern struct {
     time_date_stamp: u32,
     offset_module_name: u16,
     number_of_module_forwarder_refs: u16,
 };
 
-// Security / Authenticode
 pub const ImageDataDirectorySecurity = extern struct {
     length: u32,
     revision: u16,
     certificate_type: u16,
-    // certificate data follows
 };
 
 pub const WIN_CERT_REVISION_1_0: u16 = 0x0100;
