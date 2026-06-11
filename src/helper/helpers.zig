@@ -21,6 +21,7 @@ pub fn elfMachineName(m: u16) []const u8 {
         ELF.EM_386 => "i386",
         ELF.EM_AARCH64 => "AArch64",
         ELF.EM_RISCV => "RISC-V",
+        ELF.EM_ARM => "ARM",
         else => "unknown",
     };
 }
