@@ -28,6 +28,7 @@ pub const Options = struct {
     elf_dynamic: bool = false,
     elf_relocs: bool = false,
     elf_notes: bool = false,
+    arm_attrs: bool = false,
     dump: bool = false,
     dis: bool = false,
     offset: usize = 0,
@@ -51,6 +52,7 @@ const Cmd = enum {
     elf_notes,
     dump,
     dis,
+    arm_attr,
     unknown,
 };
 
@@ -71,6 +73,7 @@ fn parseCmd(arg: []const u8) Cmd {
     if (std.mem.eql(u8, arg, "-elf-notes")) return .elf_notes;
     if (std.mem.eql(u8, arg, "-dump")) return .dump;
     if (std.mem.eql(u8, arg, "-dis")) return .dis;
+    if (std.mem.eql(u8, arg, "-elf-arm-attrs")) return .arm_attr;
     return .unknown;
 }
 
@@ -134,6 +137,9 @@ pub fn parseArgs(args: []const [:0]const u8) !Options {
             },
             .elf_notes => {
                 opt.elf_notes = true;
+            },
+            .arm_attr => {
+                opt.arm_attrs = true;
             },
             .dump => {
                 opt.dump = true;
@@ -204,6 +210,7 @@ pub fn runElf(data: []const u8, opt: Options) !void {
         e("[ERROR] PE option used on ELF file", .{});
         return;
     }
+    print("\nBiber v0.2\n", .{});
     try elfparser.parseElf(data, opt);
 }
 
@@ -212,5 +219,6 @@ pub fn runPe(data: []const u8, opt: Options) !void {
         e("[ERROR] ELF option used on PE file", .{});
         return;
     }
+    print("\nBiber v0.2\n", .{});
     try winparser.parsePe(data, opt);
 }
