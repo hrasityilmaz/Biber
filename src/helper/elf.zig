@@ -42,6 +42,9 @@ pub const PT_SUNWBSS: u32 = 0x6ffffffa;
 pub const PT_SUNWSSTACK: u32 = 0x6ffffffb;
 pub const PT_HISUNW: u32 = 0x6fffffff;
 
+//ARM
+pub const SHT_ARM_ATTRIBUTES: u32 = 0x70000003;
+
 pub const Elf64Header = extern struct {
     e_ident: [16]u8,
     e_type: u16,
