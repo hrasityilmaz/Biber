@@ -10,8 +10,8 @@ const info = std.log.info;
 
 fn usage() void {
     std.debug.print(
-        \\biber v0.1
         \\
+        \\biber v0.2
         \\Usage:
         \\  biber -f <file> [options]
         \\
@@ -33,6 +33,7 @@ fn usage() void {
         \\  -elf-dynamic
         \\  -elf-relocs
         \\  -elf-notes
+        \\  -elf-arm-attrs
         \\
         \\Raw:
         \\  -dump <offset> <length>
@@ -44,7 +45,7 @@ fn usage() void {
         \\  biber -f limon.exe -pe-imports
         \\  biber -f kernel -elf-programs
         \\  biber -f zig.exe -all
-        \\  biber -f app.exe -dump 0x400 128
+        \\  biber -f tamgaos.elf -dump 0x400 128
         \\
     , .{});
 }
