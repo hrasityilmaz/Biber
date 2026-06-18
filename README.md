@@ -26,6 +26,7 @@ The goal of Biber is to provide a simple and readable view of executable interna
 - Dynamic section parsing
 - Notes parsing
 - GNU Hash / SYSV Hash parsing
+- ARM attributes if exists **New Feature**
 
 ### PE
 
@@ -123,6 +124,11 @@ Disassembler:
 
 ```bash
 Biber -f limon.exe -dis 0x1000 64
+```
+
+ARM attributes: **New Feature**
+```bash
+Biber -f tamgaos.elf -elf-arm-attrs
 ```
 
 ## Project Links
