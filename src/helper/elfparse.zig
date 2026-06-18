@@ -17,11 +17,9 @@ pub fn parseElf(data: []const u8, opt: options) !void {
 
     const class = data[4];
     if (class == ELF.ELFCLASS32) {
-        // TODO: 32bit parse...
         // std.log.info("class 1 32 bit", .{});
         try elfParser(ELF.Elf32Header, ELF.Elf32ProgramHeader, ELF.Elf32SectionHeader, data, opt);
     } else if (class == ELF.ELFCLASS64) {
-        // TODO: 64bit parse...
         // std.log.info("class 2 64bit", .{});
         try elfParser(ELF.Elf64Header, ELF.Elf64ProgramHeader, ELF.Elf64SectionHeader, data, opt);
     } else {
@@ -105,6 +103,10 @@ pub fn elfParser(comptime header: type, comptime programHeader: type, comptime s
                 sh.sh_addralign,
             },
         );
+    }
+
+    if (opt.all or opt.arm_attrs) {
+        printArmAttributes(header, sectionHeader, data, shstrtab);
     }
 
     if (opt.all or opt.symbols) {
@@ -476,5 +478,113 @@ fn printGnuHash(
         }
         print("\n  (* = last symbol in bucket)\n", .{});
         break;
+    }
+}
+
+// ARM ISSUE
+fn printArmAttributes(
+    comptime header: type,
+    comptime sectionHeader: type,
+    data: []const u8,
+    shstrtab: []const u8,
+) void {
+    const hdr = std.mem.bytesAsValue(header, data[0..@sizeOf(header)]);
+    for (0..hdr.*.e_shnum) |i| {
+        const off = @as(usize, hdr.*.e_shoff) + i * hdr.*.e_shentsize;
+        if (off + @sizeOf(sectionHeader) > data.len) break;
+        const sh = std.mem.bytesAsValue(sectionHeader, data[off..][0..@sizeOf(sectionHeader)]);
+        const sname = std.mem.sliceTo(shstrtab[@as(usize, sh.sh_name)..], 0);
+        if (!std.mem.eql(u8, sname, ".ARM.attributes")) continue;
+        const sec = data[@as(usize, sh.sh_offset)..][0..@as(usize, sh.sh_size)];
+        if (sec.len < 5 or sec[0] != 'A') {
+            print("\n.ARM.attributes: invalid format\n", .{});
+            return;
+        }
+        print("\nARM ATTRIBUTES (.ARM.attributes)\n", .{});
+
+        var pos: usize = 1;
+        while (pos + 4 < sec.len) {
+            const subsec_len = std.mem.readInt(u32, sec[pos..][0..4], .little);
+            const subsec_start = pos;
+            pos += 4;
+            const vendor = std.mem.sliceTo(sec[pos..], 0);
+            pos += vendor.len + 1;
+            print("  Vendor: {s}\n", .{vendor});
+            const subsec_end = subsec_start + subsec_len;
+            while (pos < subsec_end and pos < sec.len) {
+                const tag_kind = sec[pos];
+                pos += 1;
+                if (tag_kind != 1) break;
+                const size = std.mem.readInt(u32, sec[pos..][0..4], .little);
+                pos += 4;
+                const tags_end = pos + size - 5;
+                while (pos < tags_end and pos < sec.len) {
+                    const tag = elfHelper.readUleb128(sec, &pos);
+                    switch (tag) {
+                        6 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_CPU_arch        : {d} ({s})\n", .{ v, elfHelper.cpuArchName(v) });
+                        },
+                        7 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_CPU_arch_profile: '{c}' -> {s}\n", .{ @as(u8, @truncate(v)), elfHelper.profileName(@truncate(v)) });
+                        },
+                        8 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_ARM_ISA_use     : {d}\n", .{v});
+                        },
+                        9 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            const desc: []const u8 = switch (v) {
+                                0 => "not used",
+                                1 => "Thumb-1",
+                                2 => "Thumb-2",
+                                3 => "Thumb (no 32-bit)",
+                                else => "?",
+                            };
+                            print("  Tag_THUMB_ISA_use   : {d} ({s})\n", .{ v, desc });
+                        },
+                        10 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            const desc: []const u8 = switch (v) {
+                                0 => "none",
+                                1 => "VFPv1",
+                                2 => "VFPv2",
+                                3 => "VFPv3",
+                                4 => "VFPv3-D16",
+                                5 => "VFPv4",
+                                6 => "VFPv4-D16",
+                                7 => "FPv5/A32",
+                                else => "?",
+                            };
+                            print("  Tag_FP_arch         : {d} ({s})\n", .{ v, desc });
+                        },
+                        12 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_Advanced_SIMD   : {d} (NEON {s})\n", .{ v, if (v > 0) "exists" else "none" });
+                        },
+                        20 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_ABI_PCS_GOT_use : {d}\n", .{v});
+                        },
+                        34 => {
+                            const v = elfHelper.readUleb128(sec, &pos);
+                            print("  Tag_CPU_unaligned   : {d}\n", .{v});
+                        },
+                        5 => {
+                            const s = std.mem.sliceTo(sec[pos..], 0);
+                            pos += s.len + 1;
+                            print("  Tag_CPU_name        : {s}\n", .{s});
+                        },
+                        else => {
+                            break; // maybe somethings nicer dicer ???
+                        },
+                    }
+                }
+            }
+            pos = subsec_start + subsec_len;
+        }
+        print("\n", .{});
+        return;
     }
 }
