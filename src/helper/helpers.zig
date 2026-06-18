@@ -35,6 +35,7 @@ pub fn sectionType(t: u32) []const u8 {
         ELF.SHT_RELA => "RELA",
         ELF.SHT_NOBITS => "NOBITS",
         ELF.SHT_REL => "REL",
+        ELF.SHT_ARM_ATTRIBUTES => "ARM_ATTR",
         else => "unknown",
     };
 }
@@ -222,5 +223,53 @@ pub fn dynTagName(tag: i64) []const u8 {
         28 => "DT_FINI_ARRAYSZ",
         29 => "DT_RUNPATH",
         else => "UNKNOWN",
+    };
+}
+
+pub fn readUleb128(data: []const u8, off: *usize) u64 {
+    var result: u64 = 0;
+    var shift: u6 = 0;
+    while (off.* < data.len) {
+        const b = data[off.*];
+        off.* += 1;
+        result |= @as(u64, b & 0x7F) << shift;
+        if (b & 0x80 == 0) break;
+        shift += 7;
+    }
+    return result;
+}
+
+pub fn cpuArchName(v: u64) []const u8 {
+    return switch (v) {
+        0 => "Pre-v4",
+        1 => "v4",
+        2 => "v4T",
+        3 => "v5T",
+        4 => "v5TE",
+        5 => "v5TEJ",
+        6 => "v6",
+        7 => "v6KZ",
+        8 => "v6T2",
+        9 => "v6K",
+        10 => "v7",
+        11 => "v6-M",
+        12 => "v6S-M",
+        13 => "v7E-M", //DSP
+        14 => "v8",
+        15 => "v8-R",
+        16 => "v8-M.baseline",
+        17 => "v8-M.mainline",
+        else => "Unknown",
+    };
+}
+
+pub fn profileName(p: u8) []const u8 {
+    return switch (p) {
+        'A' => "Application (Cortex-A)",
+        'R' => "Realtime (Cortex-R)",
+        'M' => "Microcontroller (Cortex-M)",
+        'S' => "Classic (Cortex-S)",
+        0 => "(none / not set)",
+        else => "Unknown",
     };
 }
