@@ -157,7 +157,7 @@ pub fn main(init: std.process.Init) !void {
         .elf => try helper.runElf(data, opt),
         .pe => try helper.runPe(data, opt),
         .unknown => {
-            e("[ERROR] Not supported", .{});
+            e("[ERROR] Not supported On future release will be implement", .{});
             return;
         },
     } //std.debug.print("args.len: {d}\n", .{args.len});
