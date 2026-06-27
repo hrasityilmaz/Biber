@@ -10,7 +10,23 @@ It was originally created while exploring executable formats during x86 kernel d
 
 The goal of Biber is to provide a simple and readable view of executable internals without requiring large reverse engineering frameworks.
 
-> Project status: First public release.
+With new feature already you can see ARM attrs:
+
+```bash
+ARM ATTRIBUTES (.ARM.attributes)
+    Vendor: aeabi
+    Tag_CPU_name        : Cortex-M4  
+    Tag_CPU_arch        : 13 (v7E-M)  
+    Tag_CPU_arch_profile: 'M' -> Microcontroller (Cortex-M)  
+    Tag_THUMB_ISA_use   : 2 (Thumb-2) 
+```
+
+ 
+
+
+
+> Project status: v0.2 came :)
+
 
 ---
 
