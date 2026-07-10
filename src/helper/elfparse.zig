@@ -555,6 +555,7 @@ fn printArmAttributes(
                                 5 => "VFPv4",
                                 6 => "VFPv4-D16",
                                 7 => "FPv5/A32",
+                                8 => "FPv5-D16",
                                 else => "?",
                             };
                             print("  Tag_FP_arch         : {d} ({s})\n", .{ v, desc });
